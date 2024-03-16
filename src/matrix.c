@@ -58,13 +58,13 @@ void matrix_copy(Matrix* a, Matrix* b) {
 }
 
 Matrix* matrix_transpose(Matrix* m) {
-    Matrix* res = matrix_create(m->cols, m->rows);
-    for (uint32_t i = 0; i < m->rows; i++) {
-        for (uint32_t j = 0; j < m->cols; j++) {
-            res->items[j][i] = m->items[i][j];
-        }
+  Matrix* res = matrix_create(m->cols, m->rows);
+  for (uint32_t i = 0; i < m->rows; i++) {
+    for (uint32_t j = 0; j < m->cols; j++) {
+      res->items[j][i] = m->items[i][j];
     }
-    return res;
+  }
+  return res;
 }
 
 Matrix* matrix_identity(uint32_t dimension) {
@@ -78,73 +78,70 @@ Matrix* matrix_identity(uint32_t dimension) {
 }
 
 bool matrix_is_square(Matrix* m) {
-    return (m->rows == m->cols);
+  return (m->rows == m->cols);
 }
 
 double matrix_determinant(Matrix* m) {
-    if (!matrix_is_square(m)) PANIC("Invalid input, matrix is non-square");
-    if (m->rows == 1) {
-      return m->items[0][0];
-    }
-    double det = 0;
-    Matrix* submatrix = matrix_create(m->rows - 1, m->cols - 1);
-    for (uint32_t k = 0; k < m->cols; k++) {
-      for (uint32_t i = 1; i < m->rows; i++) {
-        for (uint32_t j = 0; j < m->cols; j++) {
-          if (j < k) {
-            submatrix->items[i - 1][j] = m->items[i][j];
-          } else if (j > k) {
-            submatrix->items[i - 1][j - 1] = m->items[i][j];
-          }
+  if (!matrix_is_square(m)) PANIC("Invalid input, matrix is non-square");
+  if (m->rows == 1) {
+    return m->items[0][0];
+  }
+  double det = 0;
+  Matrix* submatrix = matrix_create(m->rows - 1, m->cols - 1);
+  for (uint32_t k = 0; k < m->cols; k++) {
+    for (uint32_t i = 1; i < m->rows; i++) {
+      for (uint32_t j = 0; j < m->cols; j++) {
+        if (j < k) {
+          submatrix->items[i - 1][j] = m->items[i][j];
+        } else if (j > k) {
+          submatrix->items[i - 1][j - 1] = m->items[i][j];
         }
       }
-      det += (k % 2 == 0 ? 1 : -1) * m->items[0][k] * matrix_determinant(submatrix);
     }
-    matrix_destroy(submatrix);
-    return det;
+    det += (k % 2 == 0 ? 1 : -1) * m->items[0][k] * matrix_determinant(submatrix);
+  }
+  matrix_destroy(submatrix);
+  return det;
 }
 
 bool matrix_is_singular(Matrix* m) {
-    return (matrix_determinant(m) == (double)0);
+  return (matrix_determinant(m) == (double)0);
 }
 
 Matrix* matrix_inverse(Matrix* m) {
-    if (matrix_is_singular(m)) PANIC("Invalid input, matrix is singular no inverse exists");
-    Matrix* temp = matrix_create(m->rows, m->cols);
-    matrix_copy(temp, m);
-    Matrix* inv = matrix_identity(m->rows);
+  if (matrix_is_singular(m)) PANIC("Invalid input, matrix is singular no inverse exists");
+  Matrix* temp = matrix_create(m->rows, m->cols);
+  matrix_copy(temp, m);
+  Matrix* inv = matrix_identity(m->rows);
 
-     for (uint32_t i = 0; i < m->rows; i++) {
-        // Check for zero pivot
-        if (temp->items[i][i] == 0.0) {
-            matrix_destroy(inv);
-            matrix_destroy(temp);
-            PANIC("Inverse does not exist. Zero pivot found");
+    for (uint32_t i = 0; i < m->rows; i++) {
+      // Check for zero pivot
+      if (temp->items[i][i] == 0.0) {
+        matrix_destroy(inv);
+        matrix_destroy(temp);
+        PANIC("Inverse does not exist. Zero pivot found");
+      }
+
+      double scale = 1.0 / temp->items[i][i];
+      for (uint32_t j = 0; j < m->rows; j++) {
+        temp->items[i][j] *= scale;
+        inv->items[i][j] *= scale;
+      }
+
+      for (uint32_t k = 0; k < m->rows; k++) {
+        if (k != i) {
+          double factor = temp->items[k][i];
+          for (uint32_t j = 0; j < m->rows; j++) {
+            temp->items[k][j] -= factor * temp->items[i][j];
+            inv->items[k][j] -= factor * inv->items[i][j];
+          }
         }
+      }
+  }
 
-        // Scale row i to have a leading 1
-        double scale = 1.0 / temp->items[i][i];
-        for (uint32_t j = 0; j < m->rows; j++) {
-            temp->items[i][j] *= scale;
-            inv->items[i][j] *= scale;
-        }
+  matrix_destroy(temp);
 
-        // Eliminate non-zero entries in column i
-        for (uint32_t k = 0; k < m->rows; k++) {
-            if (k != i) {
-                double factor = temp->items[k][i];
-                for (uint32_t j = 0; j < m->rows; j++) {
-                    temp->items[k][j] -= factor * temp->items[i][j];
-                    inv->items[k][j] -= factor * inv->items[i][j];
-                }
-            }
-        }
-    }
-
-    // Free temporary matrix
-    matrix_destroy(temp);
-
-    return inv;
+  return inv;
 }
 
 void matrix_destroy(Matrix* m) {
