@@ -5,9 +5,9 @@ Matrix* matrix_create(uint32_t rows, uint32_t cols) {
   res->rows = rows;
   res->cols = cols;
   res->items = (double**) malloc(rows * sizeof(double*));
-  for (uint32_t i = 0; i < rows; i++) {
+  for (size_t i = 0; i < rows; i++) {
     res->items[i] = (double*) malloc(cols * sizeof(double));
-    for (uint32_t j = 0; j < cols; j++) {
+    for (size_t j = 0; j < cols; j++) {
       res->items[i][j] = 0;
     }
   }
@@ -17,8 +17,8 @@ Matrix* matrix_create(uint32_t rows, uint32_t cols) {
 Matrix* matrix_create_fill(uint32_t rows, uint32_t cols, double** items) {
   if (!items || !(*items)) PANIC("NULL pointer");
   Matrix* res = matrix_create(rows, cols);
-  for (uint32_t i = 0; i < rows; i++) {
-    for (uint32_t j = 0; j < cols; j++) {
+  for (size_t i = 0; i < rows; i++) {
+    for (size_t j = 0; j < cols; j++) {
       res->items[i][j] = items[i][j];
     }
   }
@@ -28,9 +28,9 @@ Matrix* matrix_create_fill(uint32_t rows, uint32_t cols, double** items) {
 Matrix* matrix_dot(Matrix* a, Matrix* b) {
   if (a->cols != b->rows) PANIC("Invlaid matrix dimensions");
   Matrix* res = matrix_create(a->rows, b->cols);
-  for (uint32_t i = 0; i < a->rows; i++) {
-    for (uint32_t j = 0; j < b->rows; j++) {
-      for (uint32_t k = 0; k < b->cols; k++) {
+  for (size_t i = 0; i < a->rows; i++) {
+    for (size_t j = 0; j < b->rows; j++) {
+      for (size_t k = 0; k < b->cols; k++) {
         res->items[i][k] += a->items[i][j] * b->items[j][k];
       }
     }
@@ -40,8 +40,8 @@ Matrix* matrix_dot(Matrix* a, Matrix* b) {
 
 bool matrix_is_equal(Matrix* a, Matrix* b) {
   if ((a->rows != b->rows) || (a->cols != b->cols)) return false;
-  for (uint32_t i = 0; i < a->rows; i++) {
-    for (uint32_t j = 0; j < a->cols; j++) {
+  for (size_t i = 0; i < a->rows; i++) {
+    for (size_t j = 0; j < a->cols; j++) {
       if (a->items[i][j] != b->items[i][j]) return false;
     }
   }
@@ -50,8 +50,8 @@ bool matrix_is_equal(Matrix* a, Matrix* b) {
 
 void matrix_copy(Matrix* a, Matrix* b) {
   if (a->rows != b->rows || a->cols != b->cols) PANIC("Invalid input, dimensions doesn't match");
-  for (uint32_t i = 0; i < b->rows; i++) {
-    for (uint32_t j = 0; j < b->cols; j++) {
+  for (size_t i = 0; i < b->rows; i++) {
+    for (size_t j = 0; j < b->cols; j++) {
       a->items[i][j] = b->items[i][j];
     }
   }
@@ -59,8 +59,8 @@ void matrix_copy(Matrix* a, Matrix* b) {
 
 Matrix* matrix_transpose(Matrix* m) {
   Matrix* res = matrix_create(m->cols, m->rows);
-  for (uint32_t i = 0; i < m->rows; i++) {
-    for (uint32_t j = 0; j < m->cols; j++) {
+  for (size_t i = 0; i < m->rows; i++) {
+    for (size_t j = 0; j < m->cols; j++) {
       res->items[j][i] = m->items[i][j];
     }
   }
@@ -69,8 +69,8 @@ Matrix* matrix_transpose(Matrix* m) {
 
 Matrix* matrix_identity(uint32_t dimension) {
   Matrix* res = matrix_create(dimension, dimension);
-  for (uint32_t i = 0; i < dimension; i++) {
-    for (uint32_t j = 0; j < dimension; j++) {
+  for (size_t i = 0; i < dimension; i++) {
+    for (size_t j = 0; j < dimension; j++) {
       res->items[i][j] = (i == j ? 1.0 : 0.0);
     }
   }
@@ -88,9 +88,9 @@ double matrix_determinant(Matrix* m) {
   }
   double det = 0;
   Matrix* submatrix = matrix_create(m->rows - 1, m->cols - 1);
-  for (uint32_t k = 0; k < m->cols; k++) {
-    for (uint32_t i = 1; i < m->rows; i++) {
-      for (uint32_t j = 0; j < m->cols; j++) {
+  for (size_t k = 0; k < m->cols; k++) {
+    for (size_t i = 1; i < m->rows; i++) {
+      for (size_t j = 0; j < m->cols; j++) {
         if (j < k) {
           submatrix->items[i - 1][j] = m->items[i][j];
         } else if (j > k) {
@@ -113,50 +113,45 @@ Matrix* matrix_inverse(Matrix* m) {
   Matrix* temp = matrix_create(m->rows, m->cols);
   matrix_copy(temp, m);
   Matrix* inv = matrix_identity(m->rows);
-
-    for (uint32_t i = 0; i < m->rows; i++) {
-      // Check for zero pivot
-      if (temp->items[i][i] == 0.0) {
-        matrix_destroy(inv);
-        matrix_destroy(temp);
-        PANIC("Inverse does not exist. Zero pivot found");
-      }
-
-      double scale = 1.0 / temp->items[i][i];
-      for (uint32_t j = 0; j < m->rows; j++) {
-        temp->items[i][j] *= scale;
-        inv->items[i][j] *= scale;
-      }
-
-      for (uint32_t k = 0; k < m->rows; k++) {
-        if (k != i) {
-          double factor = temp->items[k][i];
-          for (uint32_t j = 0; j < m->rows; j++) {
-            temp->items[k][j] -= factor * temp->items[i][j];
-            inv->items[k][j] -= factor * inv->items[i][j];
-          }
+  for (size_t i = 0; i < m->rows; i++) {
+    // Check for zero pivot
+    if (temp->items[i][i] == 0.0) {
+      matrix_destroy(inv);
+      matrix_destroy(temp);
+      PANIC("Inverse does not exist. Zero pivot found");
+    }
+    double scale = 1.0 / temp->items[i][i];
+    for (size_t j = 0; j < m->rows; j++) {
+      temp->items[i][j] *= scale;
+      inv->items[i][j] *= scale;
+    }
+    for (size_t k = 0; k < m->rows; k++) {
+      if (k != i) {
+        double factor = temp->items[k][i];
+        for (size_t j = 0; j < m->rows; j++) {
+          temp->items[k][j] -= factor * temp->items[i][j];
+          inv->items[k][j] -= factor * inv->items[i][j];
         }
       }
+    }
   }
-
   matrix_destroy(temp);
-
   return inv;
 }
 
 void matrix_destroy(Matrix* m) {
   if (!m) PANIC("NULL pointer");
-  for (uint32_t i = 0; i < m->rows; i++) {
-        free(m->items[i]);
+  for (size_t i = 0; i < m->rows; i++) {
+    free(m->items[i]);
   }
   free(m->items);
   free(m);
 }
 
 void matrix_display(Matrix* m) {
-  for (uint32_t i = 0; i < m->rows; i++) {
+  for (size_t i = 0; i < m->rows; i++) {
     printf("[%.6lf", m->items[i][0]);
-    for (uint32_t j = 1; j < m->cols; j++) {
+    for (size_t j = 1; j < m->cols; j++) {
       printf("\t%.6lf", m->items[i][j]);
     }
     printf("]\n");

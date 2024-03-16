@@ -2,10 +2,9 @@
 
 int main(void) {
   
-  double** A;
+  Matrix* a = matrix_create(3, 3);
 
-  TABLE(A, 3, 3, {1, -5, 3}, {1, 0, 8.64}, {-9.245, 3, -2});
-  Matrix* a = matrix_create_fill(3, 3, A);
+  TABLE(a, 3, 3, {1, -5, 3}, {1, 15, 7.4950}, {-9.245, 3, -2});
   
   matrix_display(a);
   matrix_display(matrix_inverse(a));
