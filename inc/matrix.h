@@ -13,16 +13,16 @@
 #define PANIC(msg) do {fprintf(stderr, "Error: %s\n", msg); exit(EXIT_FAILURE);} while(0)
 #define TABLE(arr, rows, cols, ...) \
     do { \
-        arr = (double **)malloc(rows * sizeof(double *)); \
-        for (size_t i = 0; i < rows; i++) { \
-            arr[i] = (double *)malloc(cols * sizeof(double)); \
+      arr = (double **)malloc(rows * sizeof(double *)); \
+      for (size_t i = 0; i < rows; i++) { \
+        arr[i] = (double *)malloc(cols * sizeof(double)); \
+      } \
+      double temp_arr[rows][cols] = { __VA_ARGS__ }; \
+      for (size_t i = 0; i < rows; i++) { \
+        for (size_t j = 0; j < cols; j++) { \
+          arr[i][j] = temp_arr[i][j]; \
         } \
-        double temp_arr[rows][cols] = { __VA_ARGS__ }; \
-        for (size_t i = 0; i < rows; i++) { \
-            for (size_t j = 0; j < cols; j++) { \
-                arr[i][j] = temp_arr[i][j]; \
-            } \
-        } \
+      } \
     } while(0)
 /* Function-like Macros Section End */
 
