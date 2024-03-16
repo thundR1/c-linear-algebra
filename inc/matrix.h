@@ -11,6 +11,19 @@
 
 /* Function-like Macros Section Start */
 #define PANIC(msg) do {fprintf(stderr, "Error: %s\n", msg); exit(EXIT_FAILURE);} while(0)
+#define TABLE(arr, rows, cols, ...) \
+    do { \
+        arr = (double **)malloc(rows * sizeof(double *)); \
+        for (size_t i = 0; i < rows; i++) { \
+            arr[i] = (double *)malloc(cols * sizeof(double)); \
+        } \
+        double temp_arr[rows][cols] = { __VA_ARGS__ }; \
+        for (size_t i = 0; i < rows; i++) { \
+            for (size_t j = 0; j < cols; j++) { \
+                arr[i][j] = temp_arr[i][j]; \
+            } \
+        } \
+    } while(0)
 /* Function-like Macros Section End */
 
 /* Types Section Start */
@@ -31,7 +44,7 @@ bool matrix_is_square(Matrix* m);
 double matrix_determinant(Matrix* m);
 bool matrix_is_singular(Matrix* m);
 Matrix* matrix_inverse(Matrix* m);
-void matrix_free(Matrix** m);
+void matrix_destroy(Matrix* m);
 void matrix_display(Matrix* m);
 /* Function Section End */
 
