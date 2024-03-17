@@ -100,7 +100,7 @@ double matrix_determinant(Matrix* m) {
     }
     det += (k % 2 == 0 ? 1 : -1) * m->items[0][k] * matrix_determinant(submatrix);
   }
-  matrix_destroy(submatrix);
+  matrix_destroy(&submatrix);
   return det;
 }
 
@@ -116,8 +116,8 @@ Matrix* matrix_inverse(Matrix* m) {
   for (size_t i = 0; i < m->rows; i++) {
     // Check for zero pivot
     if (temp->items[i][i] == 0.0) {
-      matrix_destroy(inv);
-      matrix_destroy(temp);
+      matrix_destroy(&inv);
+      matrix_destroy(&temp);
       PANIC("Inverse does not exist. Zero pivot found");
     }
     double scale = 1.0 / temp->items[i][i];
@@ -135,24 +135,27 @@ Matrix* matrix_inverse(Matrix* m) {
       }
     }
   }
-  matrix_destroy(temp);
+  matrix_destroy(&temp);
   return inv;
 }
 
-void matrix_destroy(Matrix* m) {
-  if (!m) PANIC("NULL pointer");
-  for (size_t i = 0; i < m->rows; i++) {
-    free(m->items[i]);
+void matrix_destroy(Matrix** m) {
+  if (!m || !(*m)) PANIC("NULL pointer");
+  for (size_t i = 0; i < (*m)->rows; i++) {
+    free((*m)->items[i]);
+    (*m)->items[i] = NULL;
   }
-  free(m->items);
-  free(m);
+  free((*m)->items);
+  (*m)->items = NULL;
+  free(*m);
+  *m = NULL;
 }
 
 void matrix_display(Matrix* m) {
   for (size_t i = 0; i < m->rows; i++) {
-    printf("[%.6lf", m->items[i][0]);
+    printf("[%.7lf", m->items[i][0]);
     for (size_t j = 1; j < m->cols; j++) {
-      printf("\t%.6lf", m->items[i][j]);
+      printf("\t%.7lf", m->items[i][j]);
     }
     printf("]\n");
   }

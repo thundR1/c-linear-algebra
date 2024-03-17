@@ -20,6 +20,13 @@
         } \
       } \
     } while(0)
+
+#define EXEC_CONSUME(fn1, fnResult) \
+  do { \
+    Matrix* v = fnResult; \
+    fn1(v); \
+    matrix_destroy(&v); \
+  } while (0)
 /* Function-like Macros Section End */
 
 /* Types Section Start */
@@ -40,7 +47,7 @@ bool matrix_is_square(Matrix* m);
 double matrix_determinant(Matrix* m);
 bool matrix_is_singular(Matrix* m);
 Matrix* matrix_inverse(Matrix* m);
-void matrix_destroy(Matrix* m);
+void matrix_destroy(Matrix** m);
 void matrix_display(Matrix* m);
 /* Function Section End */
 
